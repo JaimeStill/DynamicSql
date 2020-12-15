@@ -170,6 +170,8 @@ namespace SqlCore
                 }
             }
 
+            await reader.CloseAsync();
+
             return results.HasValues
                 ? results.ToString()
                 : string.Empty;
