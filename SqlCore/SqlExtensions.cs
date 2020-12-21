@@ -149,7 +149,7 @@ namespace SqlCore
             }
         }
 
-        public static async Task<string> ReadResults(this SqlDataReader reader)
+        public static async Task<JArray> ReadResults(this SqlDataReader reader)
         {
             var results = new JArray();
 
@@ -161,8 +161,7 @@ namespace SqlCore
 
                     for (var i = 0; i < reader.VisibleFieldCount; i++)
                     {
-                        var name = Char.ToLowerInvariant(reader.GetName(i)[0]) + reader.GetName(i).Substring(1);
-                        var prop = new JProperty(name, reader.GetValue(i));
+                        var prop = new JProperty(data.GetSafePropertyName(reader.GetName(i)), reader.GetValue(i));
                         data.Add(prop);
                     }
 
@@ -171,10 +170,19 @@ namespace SqlCore
             }
 
             await reader.CloseAsync();
+            
+            return results;
+        }
 
-            return results.HasValues
-                ? results.ToString()
-                : string.Empty;
+        static string GetSafePropertyName(this JObject data, string name, int iteration = 0, bool isFirst = true)
+        {
+            string check = isFirst
+                ? name
+                : $"{name}_{iteration}";
+
+            return data.ContainsKey(check)
+                ? data.GetSafePropertyName(name, ++iteration, false)
+                : check;
         }
 
         static List<int> TransientErrorNumbers = new List<int>

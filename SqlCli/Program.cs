@@ -41,7 +41,8 @@ namespace SqlCli
                 try
                 {
                     var script = await query.GetSqlScript();
-                    script = script.InterpolateScriptProps(props);
+
+                    if (!string.IsNullOrEmpty(props)) script = script.InterpolateScriptProps(props);
 
                     using var connection = await server.BuildConnectionString(database).InitalizeConnection();
                     using var command = connection.InitializeCommand(script);
